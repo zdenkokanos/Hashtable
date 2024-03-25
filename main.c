@@ -4,7 +4,7 @@
 #define N 10000
 
 typedef struct node {
-    double balance;
+    int balance;
     char searchBy[100];
     struct node *next;
     struct node *previous;
@@ -35,6 +35,10 @@ double getFloat(char *balance) {
     return result;
 }
 
+int toInt(char *balance){
+    return getFloat(balance)*100;
+}
+
 int compareStrings(char *string1, char *string2) {
     int i = 0;
     while (string1[i] != '\0' || string2[i] != '\0') {
@@ -50,7 +54,7 @@ char *remove_spaces(char *firstname, char *surname, char *date) {
     int i = 0;
     int j = 0;
     int total_length = string_length(firstname) + string_length(surname) + string_length(date);
-    char *string = (char *) malloc((total_length + 1) * sizeof(char));
+    char *string = (char *)malloc((total_length + 1) * sizeof(char));
     while (firstname[i] != '\0') {
         string[i] = firstname[i];
         i++;
@@ -70,38 +74,26 @@ char *remove_spaces(char *firstname, char *surname, char *date) {
     return string;
 }
 
-NODE *search(long long key, NODE **array, char *searchBy, int print, int *printed) {
+NODE *search(long long key, NODE **array, char *searchBy, int print) {
     NODE *current = array[key];
     if (current == NULL) {
         return NULL;
     }
     if (compareStrings(current->searchBy, searchBy) == 0) {
-        if (print == 0) {
-            if (*printed == 0) {
-                printf("%.0lf,%02d", current->balance, (((int) (current->balance * 100)) % 100));
-                *printed = 1;
-            } else {
-                printf("\n%.0lf,%02d", current->balance, (((int) (current->balance * 100)) % 100));
-            }
-
-        }
-    } else {
-        while (compareStrings(current->searchBy, searchBy) != 0 && current != NULL) {
+        if(print==0)
+            printf("%d,%02d\n", current->balance/100,current->balance%100);
+    }
+    else {
+        while (compareStrings(current->searchBy, searchBy) != 0 && current!=NULL) {
             current = current->next;
         }
-        if (current != NULL && print == 0) {
-            if (*printed == 0) {
-                printf("%.0lf,%02d", current->balance, (((int) (current->balance * 100)) % 100));
-                *printed = 1;
-            } else {
-                printf("\n%.0lf,%02d", current->balance, (((int) (current->balance * 100)) % 100));
-            }
-        }
+        if (current != NULL && print == 0)
+            printf("%d,%02d\n", current->balance/100,current->balance%100);
     }
     return current;
 }
 
-void delete(NODE *toDelete) {
+void delete(NODE* toDelete) {
     if (toDelete->previous != NULL) {
         toDelete->previous->next = toDelete->next;
     }
@@ -120,23 +112,21 @@ unsigned long long int hash(char *string) {
 }
 
 
-void update(int balanceDifference, NODE *toUpdate, int *printed) {
-    double result = toUpdate->balance + balanceDifference;
-    if (result < 0) {
-        if (*printed == 0) {
-            printf("update failed");
-            *printed = 1;
-        } else {
-            printf("\nupdate failed");
-        }
+void update(int balanceDifference, NODE *toUpdate) {
+    double balanceChange = (double)balanceDifference / 100.0;
+
+    double newBalance = ((double)toUpdate->balance / 100.0) + balanceChange;
+
+    if (newBalance < 0) {
+        printf("update failed\n");
     } else {
-        toUpdate->balance = result;
+        toUpdate->balance = (int)(newBalance * 100.0);
     }
 }
 
-void insert(long long key, NODE **array, double balance, char *searchBy) {
+void insert(long long key, NODE **array, int balance, char *searchBy) {
     NODE *newNode = (NODE *) malloc(sizeof(NODE));
-    newNode->balance = balance;
+    newNode->balance =  balance;
     toString(newNode->searchBy, searchBy);
     newNode->next = NULL;
     newNode->previous = NULL;
@@ -162,7 +152,6 @@ int main() {
     char firstname[15];
     char surname[15];
     char *searchBy;
-    int printed = 0;
     NODE **array = (NODE **) malloc(N * sizeof(NODE *));
 
     while (scanf(" %c", &input) == 1) {
@@ -170,41 +159,32 @@ int main() {
             case 's':
                 scanf("%s %s %s", firstname, surname, date);
                 searchBy = remove_spaces(firstname, surname, date);
-                if (search(hash(searchBy), array, searchBy, 0, &printed) == NULL) {
-                    if (printed == 0) {
-                        printf("search failed");
-                        printed = 1;
-                    } else {
-                        printf("\nsearch failed");
-                    }
+                if(search(hash(searchBy), array, searchBy,0)==NULL){
+                    printf("search failed\n");
                 }
                 free(searchBy);
                 break;
             case 'd':
                 scanf("%s %s %s", firstname, surname, date);
                 searchBy = remove_spaces(firstname, surname, date);
-                delete(search(hash(searchBy), array, searchBy, 1, &printed));
+                delete(search(hash(searchBy), array, searchBy,1));
                 free(searchBy);
                 break;
             case 'i':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
                 searchBy = remove_spaces(firstname, surname, date);
-                insert(hash(searchBy), array, getFloat(balance), searchBy);
+                insert(hash(searchBy), array, toInt(balance), searchBy);
                 free(searchBy);
                 break;
             case 'u':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
                 searchBy = remove_spaces(firstname, surname, date);
-                NODE *toUpdate = search(hash(searchBy), array, searchBy, 1, &printed);
-                if (toUpdate == NULL) {
-                    if (printed == 0) {
-                        printf("update failed");
-                        printed = 1;
-                    } else {
-                        printf("\nupdate failed");
-                    }
-                } else {
-                    update(getFloat(balance), toUpdate);
+                NODE *toUpdate = search(hash(searchBy), array, searchBy,1);
+                if(toUpdate == NULL){
+                    printf("update failed\n");
+                }
+                else{
+                    update(toInt(balance), toUpdate);
                 }
                 free(searchBy);
                 break;
@@ -212,7 +192,6 @@ int main() {
                 break;
         }
     }
-
 
     return 0;
 }
