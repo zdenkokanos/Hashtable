@@ -4,12 +4,13 @@
 #define N 100
 
 typedef struct node {
-    char balance[50];
+    int balance;
     char searchBy[100];
     struct node *next;
+    struct node *previous;
 } NODE;
 
-int string_length(char *string) {
+int string_length(const char *string) {
     int i;
     for (i = 0; string[i] != '\0'; i++);
     return i;
@@ -21,6 +22,21 @@ void toString(char *N_string, char *string) {
         N_string[i] = string[i];
     }
     N_string[i] = '\0';
+}
+
+double getFloat(char *balance) {
+    int i = 0;
+    double result;
+    while (balance[i] != ',') {
+        i++;
+    }
+    balance[i] = '.';
+    sscanf(balance, "%lf", &result);
+    return result;
+}
+
+int toInt(char *balance){
+    return getFloat(balance)*100;
 }
 
 int compareStrings(char *string1, char *string2) {
@@ -57,21 +73,29 @@ char *remove_spaces(char *firstname, char *surname, char *date) {
     return string;
 }
 
-NODE *search(long long key, NODE **array, char *searchBy) {
+NODE *search(long long key, NODE **array, char *searchBy, int print) {
     NODE *current = array[key];
     if (compareStrings(current->searchBy, searchBy) == 0) {
-        printf("%s", current->balance);
+        if(print==0)
+            printf("%d,%02d", current->balance/100,current->balance%100);
     } else {
         while (compareStrings(current->searchBy, searchBy) != 0) {
             current = current->next;
         }
-        printf("%s", current->balance);
+        if(print==0)
+            printf("%d,%d", current->balance/100,current->balance%100);
     }
     return current;
 }
 
-void delete() {
+void delete(NODE* toDelete) {
+    if(toDelete->next == NULL){
+        free(toDelete);
+        toDelete = NULL;
+    }
+    else{
 
+    }
 }
 
 unsigned long long int hash(char *string) {
@@ -82,34 +106,24 @@ unsigned long long int hash(char *string) {
     return result % N;
 }
 
-double getFloat(char *balance) {
-    int i = 0;
-    double result;
-    while (balance[i] != ',') {
-        i++;
-    }
-    balance[i] = '.';
-    sscanf(balance, "%lf", result);
-    return result;
-}
 
-
-void update(char *balance, char *balanceDifference, NODE **array) {
-    double balanceInDouble = getFloat(balance);
-    double balanceDifferenceDouble = getFloat(balanceDifference);
-    double result = balance - balanceDifference;
+void update(int balanceDifference, NODE *toUpdate) {
+    double result = ((double)toUpdate->balance)/100 + (double)balanceDifference/100;
     if (result < 0) {
         printf("update failed");
-    } else {
-
+    } else
+    {
+        result = result*100;
+        toUpdate->balance = (int)result;
     }
 }
 
-void insert(long long key, NODE **array, char *balance, char *searchBy) {
+void insert(long long key, NODE **array, int balance, char *searchBy) {
     NODE *newNode = (NODE *) malloc(sizeof(NODE));
-    toString(newNode->balance, balance);
+    newNode->balance =  balance;
     toString(newNode->searchBy, searchBy);
     newNode->next = NULL;
+    newNode->previous = NULL;
     NODE *current = array[key];
     if (current != NULL) {
         //collisions are dealt with chaining
@@ -147,18 +161,23 @@ int main() {
             case 's':
                 scanf("%s %s %s", firstname, surname, date);
                 searchBy = remove_spaces(firstname, surname, date);
-                search(hash(searchBy), array, searchBy);
+                search(hash(searchBy), array, searchBy,0);
                 break;
             case 'd':
+                scanf("%s %s %s", firstname, surname, date);
+                searchBy = remove_spaces(firstname, surname, date);
+                delete(search(hash(searchBy), array, searchBy,1));
                 break;
             case 'i':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
                 searchBy = remove_spaces(firstname, surname, date);
-                insert(hash(searchBy), array, balance, searchBy);
+                insert(hash(searchBy), array, toInt(balance), searchBy);
                 break;
             case 'u':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
                 searchBy = remove_spaces(firstname, surname, date);
+                NODE *toUpdate = search(hash(searchBy), array, searchBy,1);
+                update(toInt(balance), toUpdate);
                 break;
             case 'p':
                 print(array);
