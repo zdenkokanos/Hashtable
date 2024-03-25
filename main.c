@@ -5,6 +5,7 @@
 
 typedef struct node {
     int balance;
+    int decimal;
     char searchBy[100];
     struct node *next;
     struct node *previous;
@@ -24,20 +25,22 @@ void toString(char *N_string, char *string) {
     N_string[i] = '\0';
 }
 
-double getFloat(char *balance) {
-    int i = 0;
-    double result;
-    while (balance[i] != ',') {
-        i++;
-    }
-    balance[i] = '.';
-    sscanf(balance, "%lf", &result);
-    return result;
-}
-
-int toInt(char *balance){
-    return getFloat(balance)*100;
-}
+//double getFloat(char *balance) {
+//    int i = 0;
+//    double result;
+//    while (balance[i] != ',') {
+//        i++;
+//    }
+//
+//    balance[i] = '.';
+//    sscanf(balance, "%lf", &result);
+//    return result;
+//}
+//
+//int toInt(char *balance){
+//
+//    return getFloat(balance)*100;
+//}
 
 int compareStrings(char *string1, char *string2) {
     int i = 0;
@@ -81,14 +84,14 @@ NODE *search(long long key, NODE **array, char *searchBy, int print) {
     }
     if (compareStrings(current->searchBy, searchBy) == 0) {
         if(print==0)
-            printf("%d,%02d\n", current->balance/100,current->balance%100);
+            printf("%d,%02d\n", current->balance,current->decimal);
     }
     else {
         while (compareStrings(current->searchBy, searchBy) != 0 && current!=NULL) {
             current = current->next;
         }
         if (current != NULL && print == 0)
-            printf("%d,%02d\n", current->balance/100,current->balance%100);
+            printf("%d,%02d\n", current->balance,current->decimal);
     }
     return current;
 }
@@ -112,20 +115,31 @@ unsigned long long int hash(char *string) {
 }
 
 
-void update(int balanceDifference, NODE *toUpdate) {
-    double result = ((double)toUpdate->balance)/100 + (double)balanceDifference/100;
+void update(int balance, int decimal, NODE *toUpdate) {
+    int resultDec = toUpdate->decimal + decimal;
+    int result = toUpdate->balance + balance;
+    int temp = toUpdate->decimal;
+    if(resultDec<0){
+        result--;
+        temp +=resultDec;
+    }
+    if(resultDec>=100){
+        result++;
+        temp = resultDec-100;
+    }
     if (result < 0) {
         printf("update failed\n");
     } else
     {
-        result = result*100;
-        toUpdate->balance = (int)result;
+        toUpdate->balance = result;
+        toUpdate->decimal = temp;
     }
 }
 
-void insert(long long key, NODE **array, int balance, char *searchBy) {
+void insert(long long key, NODE **array, int balance, int decimal, char *searchBy) {
     NODE *newNode = (NODE *) malloc(sizeof(NODE));
     newNode->balance =  balance;
+    newNode->decimal = decimal;
     toString(newNode->searchBy, searchBy);
     newNode->next = NULL;
     newNode->previous = NULL;
@@ -146,10 +160,11 @@ void insert(long long key, NODE **array, int balance, char *searchBy) {
 
 int main() {
     char input;
-    char balance[15];
+    int balance;
     char date[12];
     char firstname[15];
     char surname[15];
+    int decimal;
     char *searchBy;
     NODE **array = (NODE **) malloc(N * sizeof(NODE *));
 
@@ -170,20 +185,20 @@ int main() {
                 free(searchBy);
                 break;
             case 'i':
-                scanf("%s %s %s %s", firstname, surname, date, balance);
+                scanf("%s %s %s %d,%d", firstname, surname, date, &balance, &decimal);
                 searchBy = remove_spaces(firstname, surname, date);
-                insert(hash(searchBy), array, toInt(balance), searchBy);
+                insert(hash(searchBy), array, balance, decimal,searchBy);
                 free(searchBy);
                 break;
             case 'u':
-                scanf("%s %s %s %s", firstname, surname, date, balance);
+                scanf("%s %s %s %d,%d", firstname, surname, date, &balance,&decimal);
                 searchBy = remove_spaces(firstname, surname, date);
                 NODE *toUpdate = search(hash(searchBy), array, searchBy,1);
                 if(toUpdate == NULL){
                     printf("update failed\n");
                 }
                 else{
-                    update(toInt(balance), toUpdate);
+                    update(balance,decimal, toUpdate);
                 }
                 free(searchBy);
                 break;
