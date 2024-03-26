@@ -78,10 +78,10 @@ NODE *search(long long key, NODE **array, char *searchBy, int print, int *printe
     if (compareStrings(current->searchBy, searchBy) == 0) {
         if (print == 0) {
             if (*printed == 0) {
-                printf("%.0lf,%02d", current->balance, (((int) (current->balance * 100)) % 100));
+                printf("%.0lf,%02d", current->balance, (((int) ((current->balance+0.5) * 100)) % 100));
                 *printed = 1;
             } else {
-                printf("\n%.0lf,%02d", current->balance, (((int) (current->balance * 100)) % 100));
+                printf("\n%.0lf,%02d", current->balance, (((int) ((current->balance+0.5) * 100)) % 100));
             }
 
         }
@@ -91,10 +91,10 @@ NODE *search(long long key, NODE **array, char *searchBy, int print, int *printe
         }
         if (current != NULL && print == 0) {
             if (*printed == 0) {
-                printf("%.0lf,%02d", current->balance, (((int) (current->balance * 100)) % 100));
+                printf("%.0lf,%02d", current->balance, (((int) ((current->balance+0.5) * 100)) % 100));
                 *printed = 1;
             } else {
-                printf("\n%.0lf,%02d", current->balance, (((int) (current->balance * 100)) % 100));
+                printf("\n%.0lf,%02d", current->balance, (((int) ((current->balance+0.5) * 100)) % 100));
             }
         }
     }
