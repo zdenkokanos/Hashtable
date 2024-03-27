@@ -7,7 +7,7 @@
 
 typedef struct node {
     int balance;
-    char searchBy[100];
+    char searchBy[50];
     struct node *next;
     struct node *previous;
 } NODE;
@@ -26,8 +26,20 @@ void toString(char *N_string, char *string) {
     N_string[i] = '\0';
 }
 
-long toInt(const char *balance) {
-    long result = 0;
+void freeNodes(NODE **array) {
+    for (int i = 0; i < N; i++) {
+        NODE *current = array[i];
+        while (current != NULL) {
+            NODE *temp = current;
+            current = current->next;
+            free(temp);
+        }
+        array[i] = NULL;
+    }
+}
+
+int toInt(const char *balance) {
+    int result = 0;
     int i = 0;
     int minus = 1;
     if (balance[i] == '-') {
@@ -111,6 +123,7 @@ NODE *search(int key, NODE **array, char *searchBy, int print, int *printed) {
             }
         }
     }
+    free(searchBy);
     return current;
 }
 
@@ -127,7 +140,7 @@ void delete(NODE *toDelete) {
 int hash(char *string) {
     unsigned long long int result = 0;
     for (int i = 0; i < string_length(string); i++) {
-        result = 311 * result + string[i];
+        result = 37 * result + string[i];
     }
     return result % N;
 }
@@ -167,6 +180,7 @@ void insert(int key, NODE **array, int balance, char *searchBy) {
     } else {
         array[key] = newNode;
     }
+    free(searchBy);
 }
 
 
@@ -178,7 +192,7 @@ int main() {
     char surname[15];
     char *searchBy;
     int printed = 0;
-    NODE **array = (NODE **) malloc(N * sizeof(NODE *));
+    NODE *array[N] = {NULL};
 
     while (scanf(" %c", &input) == 1) {
         switch (input) {
@@ -188,19 +202,22 @@ int main() {
                 if (search(hash(searchBy), array, searchBy, 0, &printed) == NULL) {
                     printf("\nsearch failed");
                 }
-                free(searchBy);
                 break;
             case 'd':
                 scanf("%s %s %s", firstname, surname, date);
                 searchBy = remove_spaces(firstname, surname, date);
-                delete(search(hash(searchBy), array, searchBy, 1, &printed));
-                free(searchBy);
+                NODE *toDelete = search(hash(searchBy), array, searchBy, 1, &printed);
+                if (toDelete != NULL) {
+                    delete(toDelete);
+                }
+                else{
+                    printf("\ndelete failed");
+                }
                 break;
             case 'i':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
                 searchBy = remove_spaces(firstname, surname, date);
                 insert(hash(searchBy), array, toInt(balance), searchBy);
-                free(searchBy);
                 break;
             case 'u':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
@@ -211,12 +228,11 @@ int main() {
                 } else {
                     update(toInt(balance), toUpdate);
                 }
-                free(searchBy);
                 break;
             default:
                 break;
         }
     }
-
+    freeNodes(array);
     return 0;
 }
