@@ -38,7 +38,7 @@ void freeNodes(NODE **array) {
         while (current != NULL) {
             NODE *temp = current;
             current = current->next;
-            if(current!=NULL){
+            if (current != NULL) {
                 free(temp->person);
                 free(temp);
             }
@@ -98,8 +98,7 @@ NODE *search(unsigned int key, NODE **array, int print, int *printed, char *firs
                 printf("\n%d,%02d", current->person->balance / 100, current->person->balance % 100);
             }
         }
-    }
-    else {
+    } else {
         while ((compareStrings(current->person->firstname, firstname) == 0 &&
                 compareStrings(current->person->lastname, surname) == 0 &&
                 compareStrings(current->person->date, date) == 0) && current != NULL) {
@@ -124,7 +123,7 @@ void delete(NODE *toDelete) {
     if (toDelete->next != NULL) {
         toDelete->next->previous = toDelete->previous;
     }
-    if(toDelete!=NULL){
+    if (toDelete != NULL) {
         //free(toDelete->person);
         //free(toDelete);
     }
@@ -146,16 +145,21 @@ unsigned int hash(char *firstname, char *lastname, char *date) {
 }
 
 
-void update(int balanceDifference, NODE *toUpdate) {
+void update(int balanceDifference, NODE *toUpdate, int *printed) {
     int newBalance = toUpdate->person->balance + balanceDifference;
     if (newBalance < 0) {
-        printf("\nupdate failed");
+        if (*printed == 0) {
+            printf("update failed");
+            *printed = 1;
+        } else {
+            printf("\nupdate failed");
+        }
     } else {
         toUpdate->person->balance = newBalance;
     }
 }
 
-void insert(unsigned int key, NODE **array, int balance, char *firstname, char *lastname, char *date) {
+void insert(unsigned int key, NODE **array, int balance, char *firstname, char *lastname, char *date, int *printed) {
     NODE *newNode = (NODE *) malloc(sizeof(NODE));
     PERSON *newPerson = (PERSON *) malloc(sizeof(PERSON));
     newPerson->balance = balance;
@@ -171,7 +175,12 @@ void insert(unsigned int key, NODE **array, int balance, char *firstname, char *
             if (compareStrings(current->person->firstname, firstname) == 0 &&
                 compareStrings(current->person->lastname, lastname) == 0 &&
                 compareStrings(current->person->date, date) == 0) {
-                printf("\ninsert failed");
+                if (*printed == 0) {
+                    printf("insert failed");
+                    *printed = 1;
+                } else {
+                    printf("\ninsert failed");
+                }
                 free(newPerson);
                 free(newNode);
                 return;
@@ -203,8 +212,14 @@ int main() {
         switch (input) {
             case 's':
                 scanf("%s %s %s", firstname, surname, date);
-                if (search(hash(firstname, surname, date), array, 0, &printed, firstname,surname, date) == NULL) {
-                    printf("\nsearch failed");
+                if (search(hash(firstname, surname, date), array, 0, &printed, firstname, surname, date) == NULL) {
+                    if (printed == 0) {
+                        printf("search failed");
+                        printed = 1;
+                    }
+                    else{
+                        printf("\nsearch failed");
+                    }
                 }
                 break;
             case 'd':
@@ -213,20 +228,32 @@ int main() {
                 if (toDelete != NULL) {
                     delete(toDelete);
                 } else {
-                    printf("\ndelete failed");
+                    if (printed == 0) {
+                        printf("delete failed");
+                        printed = 1;
+                    }
+                    else{
+                        printf("\ndelete failed");
+                    }
                 }
                 break;
             case 'i':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
-                insert(hash(firstname, surname, date), array, toInt(balance), firstname, surname, date);
+                insert(hash(firstname, surname, date), array, toInt(balance), firstname, surname, date, &printed);
                 break;
             case 'u':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
-                NODE *toUpdate = search(hash(firstname, surname, date), array, 1, &printed, firstname, surname,date);
+                NODE *toUpdate = search(hash(firstname, surname, date), array, 1, &printed, firstname, surname, date);
                 if (toUpdate == NULL) {
-                    printf("\nupdate failed");
+                    if (printed == 0) {
+                        printf("update failed");
+                        printed = 1;
+                    }
+                    else{
+                        printf("\nupdate failed");
+                    }
                 } else {
-                    update(toInt(balance), toUpdate);
+                    update(toInt(balance), toUpdate, &printed);
                 }
                 break;
             default:
