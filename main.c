@@ -3,6 +3,8 @@
 
 #define N 10000
 
+//ked insertujem check ci tam uz nie je
+
 typedef struct node {
     int balance;
     char searchBy[100];
@@ -48,6 +50,9 @@ long toInt(const char *balance) {
 
 int compareStrings(char *string1, char *string2) {
     int i = 0;
+    //if(string_length(string1)!= string_length(string2)){
+    //   return 1;
+    //}
     while (string1[i] != '\0' || string2[i] != '\0') {
         if (string1[i] != string2[i]) {
             return 1;
@@ -127,7 +132,7 @@ void delete(NODE* toDelete) {
 unsigned long long int hash(char *string) {
     unsigned long long int result = 0;
     for (int i = 0; i < string_length(string); i++) {
-        result = 3111 * result + string[i];
+        result = 311 * result + string[i];
     }
     return result % N;
 }
