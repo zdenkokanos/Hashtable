@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define N 10000
+#define N 4029
 
-//ked insertujem check ci tam uz nie je
 
 typedef struct person
 {
@@ -45,11 +44,11 @@ void freeNodes(NODE **array)
         while (current != NULL)
         {
             NODE *temp = current;
-            current = current->next;
             if (current != NULL)
             {
                 free(temp);
             }
+            current = current->next;
         }
         array[i] = NULL;
     }
@@ -103,13 +102,12 @@ int compareStrings(char *string1, char *string2)
 
 NODE *search(unsigned int key, NODE **array, int print, int *printed, char *firstname, char *surname, char *date)
 {
-    int found = 1;
     NODE *current = array[key];
     if (current == NULL)
     {
         return NULL;
     }
-    if (compareStrings(current->person.firstname, firstname) == 0 &&
+    if (compareStrings(current->person.firstname, firstname) == 0 &&        //check if on that index is corresponding name etc
         compareStrings(current->person.lastname, surname) == 0 &&
         compareStrings(current->person.date, date) == 0)
     {
@@ -125,12 +123,12 @@ NODE *search(unsigned int key, NODE **array, int print, int *printed, char *firs
                 printf("\n%d,%02d", current->person.balance / 100, current->person.balance % 100);
             }
         }
-        found = 0;
+        return current;
     }
-    else
+    else //if the searched key is chained, find the corresponding name etc.... if not return NULL
     {
-        while ((compareStrings(current->person.firstname, firstname) != 0 &&
-                compareStrings(current->person.lastname, surname) != 0 &&
+        while ((compareStrings(current->person.firstname, firstname) != 0 ||
+                compareStrings(current->person.lastname, surname) != 0 ||
                 compareStrings(current->person.date, date) != 0) && current->next != NULL)
         {
             current = current->next;
@@ -151,17 +149,10 @@ NODE *search(unsigned int key, NODE **array, int print, int *printed, char *firs
                     printf("\n%d,%02d", current->person.balance / 100, current->person.balance % 100);
                 }
             }
-            found = 0;
+            return current;
         }
     }
-    if (found == 0)
-    {
-        return current;
-    }
-    else
-    {
-        return NULL;
-    }
+    return NULL;
 }
 
 void delete(NODE *toDelete)
@@ -411,6 +402,6 @@ int main()
                 break;
         }
     }
-    freeNodes(array);
+    //freeNodes(array);
     return 0;
 }
