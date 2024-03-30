@@ -27,6 +27,28 @@ int string_length(const char *string)
     return i;
 }
 
+char *floatToString(float balance)
+{
+    char *string = (char *)malloc(20 * sizeof(char));
+    if (string == NULL) {
+        return NULL;
+    }
+
+    sprintf(string, "%.2f", balance);
+
+    for (int i = 0; string[i] != '\0'; i++) {
+        if (string[i] == '.') {
+            string[i] = ',';
+            break;
+        }
+    }
+    return string;
+}
+
+int toInt(float balance){
+    return (balance)*100;
+}
+
 void toString(char *N_string, const char *string)
 {
     int i;
@@ -56,34 +78,16 @@ void freeNodes(NODE **array)
     free(array);
 }
 
-int toInt(const char *balance)
-{
-    int result = 0;
+float getFloat(char *balance) {
     int i = 0;
-    int minus = 1;
-    if (balance[i] == '-')
-    {
-        i++;
-        minus = -1;
-    }
-    while (balance[i] != '\0')
-    {
-        if (balance[i] == ',')
-        {
-            i++;
-            continue;
-        }
-        else
-        {
-            if (balance[i] < '0' || balance[i] > '9')
-            {
-                return 1;
-            }
-            result = result * 10 + (balance[i] - '0');
-        }
+    float result;
+    while (balance[i] != ',') {
         i++;
     }
-    return minus * result;
+    balance[i] = '.';
+    sscanf(balance, "%f", &result);
+
+    return result;
 }
 
 int compareStrings(char *string1, char *string2)
@@ -121,12 +125,12 @@ int search(unsigned long long key, NODE **array, int *printed, char *firstname, 
 
             if (*printed == 0)
             {
-                printf("%d,%02d", current->person.balance / 100, current->person.balance % 100);
+                printf("%d,%02d", current->person.balance/100,current->person.balance%100);
                 *printed = 1;
             }
             else
             {
-                printf("\n%d,%02d", current->person.balance / 100, current->person.balance % 100);
+                printf("\n%d,%02d", current->person.balance/100,current->person.balance%100);
             }
             return 0;
         }
@@ -325,7 +329,7 @@ int main()
             case 'i':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
 
-                if (insert(hash(firstname, surname, date), array, toInt(balance), firstname, surname, date) == 1)
+                if (insert(hash(firstname, surname, date), array, toInt(getFloat(balance)), firstname, surname, date) == 1)
                 {
                     if (printed == 0)
                     {
@@ -342,7 +346,7 @@ int main()
                 break;
             case 'u':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
-                if (update(toInt(balance), array, hash(firstname, surname, date), firstname, surname, date) == 1)
+                if (update(toInt(getFloat(balance)), array, hash(firstname, surname, date), firstname, surname, date) == 1)
                 {
                     if (printed == 0)
                     {
