@@ -10,7 +10,7 @@ typedef struct person
     char firstname[26];
     char lastname[26];
     char date[12];
-    int balance;
+    char balance[20];
 } PERSON;
 
 typedef struct node
@@ -27,26 +27,54 @@ int string_length(const char *string)
     return i;
 }
 
-char *floatToString(float balance)
+char *intToString(int value)
 {
-    char *string = (char *)malloc(20 * sizeof(char));
-    if (string == NULL) {
+    char *string = (char *) malloc(25 * sizeof(char));
+    if (string == NULL)
+    {
         return NULL;
     }
 
-    sprintf(string, "%.2f", balance);
-
-    for (int i = 0; string[i] != '\0'; i++) {
-        if (string[i] == '.') {
-            string[i] = ',';
-            break;
-        }
+    sprintf(string, "%d", value);
+    int length = string_length(string);
+    for (int i = length; i >= length - 2; i--)
+    {
+        string[i + 1] = string[i];
     }
+    string[length - 2] = ',';
+    string[length + 2] = '\0';
+
     return string;
 }
 
-int toInt(float balance){
-    return (balance)*100;
+int toInt(const char *balance)
+{
+    int result = 0;
+    int i = 0;
+    int minus = 1;
+    if (balance[i] == '-')
+    {
+        i++;
+        minus = -1;
+    }
+    while (balance[i] != '\0')
+    {
+        if (balance[i] == ',')
+        {
+            i++;
+            continue;
+        }
+        else
+        {
+            if (balance[i] < '0' || balance[i] > '9')
+            {
+                return 1;
+            }
+            result = result * 10 + (balance[i] - '0');
+        }
+        i++;
+    }
+    return minus * result;
 }
 
 void toString(char *N_string, const char *string)
@@ -78,16 +106,23 @@ void freeNodes(NODE **array)
     free(array);
 }
 
-float getFloat(char *balance) {
+float getFloat(char *balance)
+{
     int i = 0;
     float result;
-    while (balance[i] != ',') {
+    int minus = 1;
+    if (balance[0] == '-')
+    {
+        minus = -1;
+    }
+    while (balance[i] != ',')
+    {
         i++;
     }
     balance[i] = '.';
     sscanf(balance, "%f", &result);
 
-    return result;
+    return result * minus;
 }
 
 int compareStrings(char *string1, char *string2)
@@ -125,12 +160,12 @@ int search(unsigned long long key, NODE **array, int *printed, char *firstname, 
 
             if (*printed == 0)
             {
-                printf("%d,%02d", current->person.balance/100,current->person.balance%100);
+                printf("%s", current->person.balance);
                 *printed = 1;
             }
             else
             {
-                printf("\n%d,%02d", current->person.balance/100,current->person.balance%100);
+                printf("\n%s", current->person.balance);
             }
             return 0;
         }
@@ -204,9 +239,11 @@ unsigned long long hash(char *firstname, char *lastname, char *date)
 }
 
 
-int update(int balanceDifference, NODE **array, unsigned long long key, char *firstname, char *surname, char *date)
+int update(char *balanceDifference, NODE **array, unsigned long long key, char *firstname, char *surname, char *date)
 {
     NODE *current = array[key];
+    int toSum = toInt(balanceDifference);
+    int updated = 0;
 
     while (current != NULL)
     {
@@ -214,22 +251,29 @@ int update(int balanceDifference, NODE **array, unsigned long long key, char *fi
             compareStrings(current->person.lastname, surname) == 0 &&
             compareStrings(current->person.date, date) == 0)
         {
-
-            int newBalance = current->person.balance + balanceDifference;
-            if (newBalance < 0)
+            int balance = toInt(current->person.balance);
+            int newBalance = balance + toSum;
+            if (newBalance >= 0)
             {
-                return 1;
+                toString(current->person.balance, intToString(newBalance));
+                updated = 1;
             }
-            current->person.balance = newBalance;
-            return 0;
         }
         current = current->next;
     }
 
-    return 1;
+    if (updated)
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
 }
 
-int insert(unsigned long long key, NODE **array, int balance, char *firstname, char *lastname, char *date)
+
+int insert(unsigned long long key, NODE **array, char *balance, char *firstname, char *lastname, char *date)
 {
     if (balance < 0)
     {
@@ -242,7 +286,7 @@ int insert(unsigned long long key, NODE **array, int balance, char *firstname, c
         return 1;
     }
 
-    newNode->person.balance = balance;
+    toString(newNode->person.balance, balance);
     toString(newNode->person.firstname, firstname);
     toString(newNode->person.lastname, lastname);
     toString(newNode->person.date, date);
@@ -329,7 +373,7 @@ int main()
             case 'i':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
 
-                if (insert(hash(firstname, surname, date), array, toInt(getFloat(balance)), firstname, surname, date) == 1)
+                if (insert(hash(firstname, surname, date), array, balance, firstname, surname, date) == 1)
                 {
                     if (printed == 0)
                     {
@@ -346,7 +390,7 @@ int main()
                 break;
             case 'u':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
-                if (update(toInt(getFloat(balance)), array, hash(firstname, surname, date), firstname, surname, date) == 1)
+                if (update(balance, array, hash(firstname, surname, date), firstname, surname, date) == 1)
                 {
                     if (printed == 0)
                     {
