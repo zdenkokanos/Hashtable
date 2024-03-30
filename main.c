@@ -10,7 +10,7 @@ typedef struct person
     char firstname[26];
     char lastname[26];
     char date[12];
-    float balance;
+    double balance;
 } PERSON;
 
 typedef struct node
@@ -27,7 +27,7 @@ int string_length(const char *string)
     return i;
 }
 
-char *floatToString(float value)
+char *doubleToString(double value)
 {
     char *string = (char *) malloc(25 * sizeof(char));
     if (string == NULL)
@@ -70,16 +70,16 @@ void freeNodes(NODE **array)
     free(array);
 }
 
-float toFloat(char *balance)
+double todouble(char *balance)
 {
     int i = 0;
-    float result;
+    double result;
     while (balance[i] != ',')
     {
         i++;
     }
     balance[i] = '.';
-    sscanf(balance, "%f", &result);
+    sscanf(balance, "%lf", &result);
 
     return result;
 }
@@ -119,12 +119,12 @@ int search(unsigned long long key, NODE **array, int *printed, char *firstname, 
 
             if (*printed == 0)
             {
-                printf("%s", floatToString(current->person.balance));
+                printf("%s", doubleToString(current->person.balance));
                 *printed = 1;
             }
             else
             {
-                printf("\n%s", floatToString(current->person.balance));
+                printf("\n%s", doubleToString(current->person.balance));
             }
             return 0;
         }
@@ -198,7 +198,7 @@ unsigned long long hash(char *firstname, char *lastname, char *date)
 }
 
 
-int update(float balanceDifference, NODE **array, unsigned long long key, char *firstname, char *surname, char *date)
+int update(double balanceDifference, NODE **array, unsigned long long key, char *firstname, char *surname, char *date)
 {
     NODE *current = array[key];
     while (current != NULL)
@@ -207,7 +207,7 @@ int update(float balanceDifference, NODE **array, unsigned long long key, char *
             compareStrings(current->person.lastname, surname) == 0 &&
             compareStrings(current->person.date, date) == 0)
         {
-            float newBalance = current->person.balance + balanceDifference;
+            double newBalance = current->person.balance + balanceDifference;
             if (newBalance >= 0)
             {
                 current->person.balance = newBalance;
@@ -221,7 +221,7 @@ int update(float balanceDifference, NODE **array, unsigned long long key, char *
 }
 
 
-int insert(unsigned long long key, NODE **array, float balance, char *firstname, char *lastname, char *date)
+int insert(unsigned long long key, NODE **array, double balance, char *firstname, char *lastname, char *date)
 {
     if (balance < 0)
     {
@@ -321,7 +321,7 @@ int main()
             case 'i':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
 
-                if (insert(hash(firstname, surname, date), array, toFloat(balance), firstname, surname, date) == 1)
+                if (insert(hash(firstname, surname, date), array, todouble(balance), firstname, surname, date) == 1)
                 {
                     if (printed == 0)
                     {
@@ -338,7 +338,7 @@ int main()
                 break;
             case 'u':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
-                if (update(toFloat(balance), array, hash(firstname, surname, date), firstname, surname, date) == 1)
+                if (update(todouble(balance), array, hash(firstname, surname, date), firstname, surname, date) == 1)
                 {
                     if (printed == 0)
                     {
