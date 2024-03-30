@@ -11,14 +11,14 @@ typedef struct person
     char lastname[26];
     char date[12];
     int balance;
+    struct person *next;
+    struct person *previous;
 } PERSON;
 
-typedef struct node
+typedef struct hashTable
 {
-    PERSON person;
-    struct node *next;
-    struct node *previous;
-} NODE;
+    PERSON **person;
+} HASHTABLE;
 
 int string_length(const char *string)
 {
@@ -105,16 +105,16 @@ int compareStrings(char *string1, char *string2)
 }
 
 
-int search(unsigned long long key, NODE **array, int *printed, char *firstname, char *surname, char *date)
+int search(unsigned long long key, HASHTABLE **array, int *printed, char *firstname, char *surname, char *date)
 {
-    NODE *current = array[key];
+    HASHTABLE *current = array[key];
     if (current == NULL)
     {
         return 1;
     }
     while (current != NULL)
     {
-        if (compareStrings(current->person.firstname, firstname) == 0 &&
+        if (compareStrings(current->person->firstname, firstname) == 0 &&
             compareStrings(current->person.lastname, surname) == 0 &&
             compareStrings(current->person.date, date) == 0)
         {
@@ -285,7 +285,8 @@ int main()
     char firstname[26];
     char surname[26];
     int printed = 0;
-    NODE **array = (NODE **) malloc(N * sizeof(NODE *));
+    PERSON **array = (PERSON **) malloc(N * sizeof(PERSON *));
+    :
 
     while (scanf(" %c", &input) == 1)
     {
