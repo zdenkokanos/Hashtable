@@ -10,7 +10,7 @@ typedef struct person
     char firstname[26];
     char lastname[26];
     char date[12];
-    double balance;
+    char balance[20];
 } PERSON;
 
 typedef struct node
@@ -119,12 +119,12 @@ int search(unsigned long long key, NODE **array, int *printed, char *firstname, 
 
             if (*printed == 0)
             {
-                printf("%s", doubleToString(current->person.balance));
+                printf("%s", current->person.balance);
                 *printed = 1;
             }
             else
             {
-                printf("\n%s", doubleToString(current->person.balance));
+                printf("\n%s", current->person.balance);
             }
             return 0;
         }
@@ -207,10 +207,10 @@ int update(double balanceDifference, NODE **array, unsigned long long key, char 
             compareStrings(current->person.lastname, surname) == 0 &&
             compareStrings(current->person.date, date) == 0)
         {
-            double newBalance = current->person.balance + balanceDifference;
+            double newBalance = todouble(current->person.balance) + balanceDifference;
             if (newBalance >= 0)
             {
-                current->person.balance = newBalance;
+                toString(current->person.balance,doubleToString(newBalance));
                 return 0;
             }
         }
@@ -221,7 +221,7 @@ int update(double balanceDifference, NODE **array, unsigned long long key, char 
 }
 
 
-int insert(unsigned long long key, NODE **array, double balance, char *firstname, char *lastname, char *date)
+int insert(unsigned long long key, NODE **array, char* balance, char *firstname, char *lastname, char *date)
 {
     if (balance < 0)
     {
@@ -234,7 +234,7 @@ int insert(unsigned long long key, NODE **array, double balance, char *firstname
         return 1;
     }
 
-    newNode->person.balance = balance;
+    toString(newNode->person.balance, balance);
     toString(newNode->person.firstname, firstname);
     toString(newNode->person.lastname, lastname);
     toString(newNode->person.date, date);
@@ -321,7 +321,7 @@ int main()
             case 'i':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
 
-                if (insert(hash(firstname, surname, date), array, todouble(balance), firstname, surname, date) == 1)
+                if (insert(hash(firstname, surname, date), array, balance, firstname, surname, date) == 1)
                 {
                     if (printed == 0)
                     {
