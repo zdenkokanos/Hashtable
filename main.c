@@ -2,22 +2,21 @@
 #include <stdlib.h>
 
 #define N 10000
-#define M 33
+#define M 31
 
 
 typedef struct person
 {
-    char firstname[26];
-    char lastname[26];
+    char firstname[20];
+    char lastname[20];
     char date[12];
-    double balance;
+    float balance;
 } PERSON;
 
 typedef struct node
 {
     PERSON person;
     struct node *next;
-    struct node *previous;
 } NODE;
 
 int string_length(const char *string)
@@ -27,9 +26,9 @@ int string_length(const char *string)
     return i;
 }
 
-char *doubleToString(double value)
+char *floatToString(float value)
 {
-    char *string = (char *) malloc(25 * sizeof(char));
+    char *string = (char *) malloc(15 * sizeof(char));
     if (string == NULL)
     {
         return NULL;
@@ -37,7 +36,7 @@ char *doubleToString(double value)
 
     sprintf(string, "%.2f", value);
     int length = string_length(string);
-    string[length-3] = ',';
+    string[length - 3] = ',';
     return string;
 }
 
@@ -70,16 +69,16 @@ void freeNodes(NODE **array)
     free(array);
 }
 
-double todouble(char *balance)
+float tofloat(char *balance)
 {
     int i = 0;
-    double result;
+    float result;
     while (balance[i] != ',')
     {
         i++;
     }
     balance[i] = '.';
-    sscanf(balance, "%lf", &result);
+    sscanf(balance, "%f", &result);
 
     return result;
 }
@@ -103,7 +102,7 @@ int compareStrings(char *string1, char *string2)
 }
 
 
-int search(unsigned long long key, NODE **array, int *printed, char *firstname, char *surname, char *date)
+int search(int key, NODE **array, int *printed, char *firstname, char *surname, char *date)
 {
     NODE *current = array[key];
     if (current == NULL)
@@ -119,12 +118,12 @@ int search(unsigned long long key, NODE **array, int *printed, char *firstname, 
 
             if (*printed == 0)
             {
-                printf("%s", doubleToString(current->person.balance));
+                printf("%s", floatToString(current->person.balance));
                 *printed = 1;
             }
             else
             {
-                printf("\n%s", doubleToString(current->person.balance));
+                printf("\n%s", floatToString(current->person.balance));
             }
             return 0;
         }
@@ -134,54 +133,39 @@ int search(unsigned long long key, NODE **array, int *printed, char *firstname, 
     return 1;
 }
 
-
-int delete(unsigned long long key, NODE **array, char *firstname, char *surname, char *date)
+int delete(int key, NODE **array, char *firstname, char *surname, char *date)
 {
     NODE *current = array[key];
-    if (array[key] == NULL)
+    NODE *previous = NULL;
+
+    while (current != NULL)
     {
-        return 1;
-    }
-    else if (compareStrings(current->person.firstname, firstname) == 0 &&
-             compareStrings(current->person.lastname, surname) == 0 &&
-             compareStrings(current->person.date, date) == 0 && current->next != NULL)
-    {
-        array[key] = current->next;
-        array[key]->previous = NULL;
-        free(current);
-        return 0;
-    }
-    else
-    {
-        while ((compareStrings(current->person.firstname, firstname) != 0 ||
-                compareStrings(current->person.lastname, surname) != 0 ||
-                compareStrings(current->person.date, date) != 0) && current->next != NULL)
-        {
-            current = current->next;
-        }
         if (compareStrings(current->person.firstname, firstname) == 0 &&
             compareStrings(current->person.lastname, surname) == 0 &&
             compareStrings(current->person.date, date) == 0)
         {
-            if (current->previous != NULL)
+
+            if (current == array[key])
             {
-                if (current->next != NULL)
-                {
-                    current->next->previous = current->previous;
-                }
-                current->previous->next = current->next;
+                array[key] = current->next;
             }
-            free(array[key]);
-            array[key] = NULL;
+            else
+            {
+                previous->next = current->next;
+            }
+            free(current);
             return 0;
         }
+        previous = current;
+        current = current->next;
     }
+
     return 1;
 }
 
-unsigned long long hash(char *firstname, char *lastname, char *date)
+int hash(char *firstname, char *lastname, char *date)
 {
-    unsigned long long result = 0;
+    int result = 0;
     for (int i = 0; i < string_length(firstname); i++)
     {
         result = M * result + firstname[i];
@@ -190,15 +174,19 @@ unsigned long long hash(char *firstname, char *lastname, char *date)
     {
         result = M * result + lastname[i];
     }
-    for (int i = 0; i < string_length(date); i++)
+    for (int i = 0; i < string_length(date) + 1; i++)
     {
         result = M * result + date[i];
+    }
+    if (result < 0)
+    {
+        result *= -1;
     }
     return result % N;
 }
 
 
-int update(double balanceDifference, NODE **array, unsigned long long key, char *firstname, char *surname, char *date)
+int update(float balanceDifference, NODE **array, int key, char *firstname, char *surname, char *date)
 {
     NODE *current = array[key];
     while (current != NULL)
@@ -207,7 +195,7 @@ int update(double balanceDifference, NODE **array, unsigned long long key, char 
             compareStrings(current->person.lastname, surname) == 0 &&
             compareStrings(current->person.date, date) == 0)
         {
-            double newBalance = current->person.balance + balanceDifference;
+            float newBalance = current->person.balance + balanceDifference;
             if (newBalance >= 0)
             {
                 current->person.balance = newBalance;
@@ -221,12 +209,26 @@ int update(double balanceDifference, NODE **array, unsigned long long key, char 
 }
 
 
-int insert(unsigned long long key, NODE **array, double balance, char *firstname, char *lastname, char *date)
+int insert(int key, NODE **array, float balance, char *firstname, char *surname, char *date)
 {
     if (balance < 0)
     {
         return 1;
     }
+
+
+    NODE *current = array[key];
+    while (current != NULL)
+    {
+        if (compareStrings(current->person.firstname, firstname) == 0 &&
+            compareStrings(current->person.lastname, surname) == 0 &&
+            compareStrings(current->person.date, date) == 0)
+        {
+            return 1;
+        }
+        current = current->next;
+    }
+
 
     NODE *newNode = (NODE *) malloc(sizeof(NODE));
     if (newNode == NULL)
@@ -234,38 +236,21 @@ int insert(unsigned long long key, NODE **array, double balance, char *firstname
         return 1;
     }
 
+
     newNode->person.balance = balance;
     toString(newNode->person.firstname, firstname);
-    toString(newNode->person.lastname, lastname);
+    toString(newNode->person.lastname, surname);
     toString(newNode->person.date, date);
     newNode->next = NULL;
-    newNode->previous = NULL;
 
-    NODE *current = array[key];
-    if (current != NULL)
+
+    if (array[key] == NULL)
     {
-        while (current != NULL)
-        {
-            if (compareStrings(current->person.firstname, firstname) == 0 &&
-                compareStrings(current->person.lastname, lastname) == 0 &&
-                compareStrings(current->person.date, date) == 0)
-            {
-                free(newNode);
-                return 1;
-            }
-            current = current->next;
-        }
-
-        current = array[key];
-        while (current->next != NULL)
-        {
-            current = current->next;
-        }
-        current->next = newNode;
-        newNode->previous = current;
+        array[key] = newNode;
     }
     else
     {
+        newNode->next = array[key];
         array[key] = newNode;
     }
 
@@ -278,12 +263,12 @@ int main()
     char input;
     char balance[20];
     char date[12];
-    char firstname[26];
-    char surname[26];
+    char firstname[20];
+    char surname[20];
     int printed = 0;
     NODE **array = (NODE **) malloc(N * sizeof(NODE *));
 
-    while (scanf(" %c", &input) == 1)
+    while (scanf("%c", &input) == 1)
     {
         switch (input)
         {
@@ -321,7 +306,7 @@ int main()
             case 'i':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
 
-                if (insert(hash(firstname, surname, date), array, todouble(balance), firstname, surname, date) == 1)
+                if (insert(hash(firstname, surname, date), array, tofloat(balance), firstname, surname, date) == 1)
                 {
                     if (printed == 0)
                     {
@@ -338,7 +323,7 @@ int main()
                 break;
             case 'u':
                 scanf("%s %s %s %s", firstname, surname, date, balance);
-                if (update(todouble(balance), array, hash(firstname, surname, date), firstname, surname, date) == 1)
+                if (update(tofloat(balance), array, hash(firstname, surname, date), firstname, surname, date) == 1)
                 {
                     if (printed == 0)
                     {
