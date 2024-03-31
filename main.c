@@ -247,8 +247,8 @@ int insert(unsigned long long key, NODE **array, int eur, int centy, char *first
     {
         while (current->next != NULL)
         {
-            if (compareStrings(current->person.firstname, firstname) == 0 &&
-                compareStrings(current->person.lastname, lastname) == 0 &&
+            if (compareStrings(current->person.firstname, firstname) == 0 ||
+                compareStrings(current->person.lastname, lastname) == 0 ||
                 compareStrings(current->person.date, date) == 0)
             {
                 free(newNode);
